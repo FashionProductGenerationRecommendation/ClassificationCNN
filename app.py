@@ -49,7 +49,7 @@ def createFeaturesAndTargets(maximumNumberOfFashionProducts = 30):
     Y = np.array(df.drop(['id'], axis=1))
     classes = np.array(list(df.columns.values)[1:])
     print ("\nTarget Headings")
-    print (list(df.columns.values))
+    print (classes)
     print ("\nFeatures Shape")
     print (X.shape)
     print ("\nTarget Shape")
@@ -81,52 +81,17 @@ def createCnnModel(numberOfTargetColumns):
 
 def runCNN(model, X_train, X_test, y_train, y_test):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test), batch_size=64)
+    model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test), batch_size=32)
     return model
 
-def performPrediction(model, classes, testFashionProductPath):
-    testFashionProductImage = load_img(testFashionProductPath)
-    testFashionProductImageArray = img_to_array(testFashionProductImage)
-    testFashionProductImageArray = tf.image.resize(testFashionProductImageArray, [50, 50], method='bilinear', preserve_aspect_ratio=True, antialias=True, name=None)
-    testFashionProductImageArray = testFashionProductImageArray / 255
-    testFashionProductImageArrayReshapped = tf.keras.backend.reshape(testFashionProductImageArray, shape=(1,50,38,3))
-    proba = model.predict(testFashionProductImageArrayReshapped, steps=1)
-    proba = proba.flatten()
-    lengthClasses = len(classes)
-    output = {}
-    output["baseColor"] = []
-    output["gender"] = []
-    output["usage"] = []
-    for i in range(0,lengthClasses):
-        data = {}
-        data["label"] = classes[i]
-        data["sigmoid"] = proba[i]
-        if "baseColor" in data["label"]:
-            output["baseColor"].append(data)
-        elif "gender" in data["label"]:
-            output["gender"].append(data)
-        elif "usage" in data["label"]:
-            output["usage"].append(data)
-        else:
-            print ("Something Wrong", data)
-    prediction = {}
-    for key, value in output.items():
-        topResultInCategory = sorted(value, key=lambda x: x["sigmoid"])[-1] 
-        selectedCategoryOption = (topResultInCategory["label"].lower()).replace(key.lower()+"_","")
-        prediction[key] = {}
-        prediction[key]["label"] = selectedCategoryOption
-        prediction[key]["sigmoid"] = topResultInCategory["sigmoid"]
-    print ("\nCNN Result")
-    print (output)
-    return prediction
-
 maximumNumberOfFashionProducts = 100
-testFashionProductPath = 'fashion-dataset/images/1890.jpg'
+model_file_h5 = "model-weights/Model.h5"
+save_classes = "model-classes/classes.npy"
 X, Y, classes = createFeaturesAndTargets(maximumNumberOfFashionProducts)
 X_train, X_test, y_train, y_test = train_test_split(X, Y, random_state=42, test_size=0.1)
 numberOfTargetColumns = len(classes)
 model = createCnnModel(numberOfTargetColumns)
 model = runCNN(model, X_train, X_test, y_train, y_test)
-mostVisuallySimilarProductProperties = performPrediction(model, classes, testFashionProductPath)
-print ("\nMost Visually Similar Product Properties")
-print (mostVisuallySimilarProductProperties)
+model.save(model_file_h5)
+np.save(save_classes, classes)
+print("Saved model to disk")
