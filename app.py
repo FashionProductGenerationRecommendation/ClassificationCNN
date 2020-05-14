@@ -81,10 +81,10 @@ def createCnnModel(numberOfTargetColumns):
 
 def runCNN(model, X_train, X_test, y_train, y_test):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test), batch_size=32)
+    model.fit(X_train, y_train, epochs=100, validation_data=(X_test, y_test), batch_size=32)
     return model
 
-maximumNumberOfFashionProducts = 100
+maximumNumberOfFashionProducts = 3000
 model_file_h5 = "model-weights/Model.h5"
 save_classes = "model-classes/classes.npy"
 X, Y, classes = createFeaturesAndTargets(maximumNumberOfFashionProducts)
@@ -95,3 +95,4 @@ model = runCNN(model, X_train, X_test, y_train, y_test)
 model.save(model_file_h5)
 np.save(save_classes, classes)
 print("Saved model to disk")
+# Products : 3000 Epoch : 100 Batch Size : 32
