@@ -16,6 +16,7 @@ from keras.layers import Conv2D, MaxPooling2D
 import re
 
 def createFeaturesAndTargets(maximumNumberOfFashionProducts = 30):
+    misMatchDimensions = []
     fashionProducts = []
     X = []
     Y = []
@@ -23,15 +24,20 @@ def createFeaturesAndTargets(maximumNumberOfFashionProducts = 30):
     jsonPath = "fashion-dataset/styles/"
     imagesPath = 'fashion-dataset/images/*.jpg'
     for filename in glob.glob(imagesPath):
-        item = {}
         fashionProductId = filename.strip('fashion-dataset/images/').strip('.jpg')
         fashionProductImage = load_img(filename)
         fashionProductImageArray = img_to_array(fashionProductImage)
         fashionProductImageArray = tf.image.resize(fashionProductImageArray, [50, 50], method='bilinear', preserve_aspect_ratio=True, antialias=True, name=None)
         fashionProductImageArray = fashionProductImageArray / 255
+        # print ('lol', fashionProductImageArray.shape)
+        if (fashionProductImageArray.shape != (50, 38, 3)):
+            misMatchDimensions.append(fashionProductId)
+            count += 1
+            continue
         # save_img(str(count)+'.jpg', fashionProductImageArray)
         f = open(jsonPath + fashionProductId + '.json',)
         fashionProductDetails = json.load(f)
+        item = {}
         item["id"] = fashionProductId
         item["baseColor"] = fashionProductDetails["data"]["baseColour"]
         item["gender"] = fashionProductDetails["data"]["gender"]
@@ -39,7 +45,7 @@ def createFeaturesAndTargets(maximumNumberOfFashionProducts = 30):
         item["fashionImage"] = fashionProductImageArray
         if item["id"] and item["baseColor"] and item["gender"] and item["usage"] :
             fashionProducts.append([int(item["id"]), item["baseColor"], item["gender"], item["usage"]])
-            X.append(fashionProductImageArray)
+            X.append(item["fashionImage"])
         count += 1
         if count > maximumNumberOfFashionProducts:
             break
@@ -54,6 +60,8 @@ def createFeaturesAndTargets(maximumNumberOfFashionProducts = 30):
     print (X.shape)
     print ("\nTarget Shape")
     print (Y.shape)
+    print ("\n Items Excluded")
+    print (misMatchDimensions)
     return X, Y, classes
 
 def createCnnModel(numberOfTargetColumns):
@@ -95,4 +103,4 @@ model = runCNN(model, X_train, X_test, y_train, y_test)
 model.save(model_file_h5)
 np.save(save_classes, classes)
 print("Saved model to disk")
-# Products : 3000 Epoch : 100 Batch Size : 32
+# 3000 Epoch : 100 Batch Size : 32
