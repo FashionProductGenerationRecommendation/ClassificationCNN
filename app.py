@@ -54,6 +54,8 @@ def createFeaturesAndTargets(maximumNumberOfFashionProducts = 30):
     df = pd.get_dummies(df, prefix=['baseColor', 'gender', 'usage'])
     Y = np.array(df.drop(['id'], axis=1))
     classes = np.array(list(df.columns.values)[1:])
+    print ("\n Total Number of Fashion Product Images")
+    print (count)
     print ("\nTarget Headings")
     print (classes)
     print ("\nFeatures Shape")
@@ -89,14 +91,14 @@ def createCnnModel(numberOfTargetColumns):
 
 def runCNN(model, X_train, X_test, y_train, y_test):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test), batch_size=32)
+    model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), batch_size=64)
     return model
 
-maximumNumberOfFashionProducts = 10000
+maximumNumberOfFashionProducts = 60000
 model_file_h5 = "model-weights/Model.h5"
 save_classes = "model-classes/classes.npy"
 X, Y, classes = createFeaturesAndTargets(maximumNumberOfFashionProducts)
-X_train, X_test, y_train, y_test = train_test_split(X, Y, random_state=42, test_size=0.1)
+X_train, X_test, y_train, y_test = train_test_split(X, Y, random_state=42, test_size=0.3)
 numberOfTargetColumns = len(classes)
 model = createCnnModel(numberOfTargetColumns)
 model = runCNN(model, X_train, X_test, y_train, y_test)
@@ -106,3 +108,4 @@ print("Saved model to disk")
 # Products : 3000 Epoch : 100 Batch Size : 32
 # Products : 1000 Epoch : 30  Batch Size : 32
 # Products : 10000 Epoch : 10  Batch Size : 32
+# Products : All Epoch : 20  Batch Size : 64 Test Size : 0.3
