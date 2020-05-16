@@ -1,3 +1,17 @@
+# TEAM NAME : KRAB
+# TEAM MEMBERS : Annuj Jain, Bharat Goel, Keshav Aditya Rajupet Premkumar, Rutvij Mehta
+# 1.  References Used For Convoluted Neural Network (CNN):
+#     https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/
+# 2.  GENERAL DESCRIPTION OF CODE :
+#     We use the CNN to find the most visually similar product in the datset given a test image. 
+#     The Features X : Are all the Fashion Product Images converted to array format 
+#     The Target Y : Are the the product description like color, usage, category, gender etc
+#     Then for a given test image, the cnn will predict all its descriptions ie. Its color, gender, usage etc
+#     [This file is used to tain the CNN]
+# 3.  DATA FRAMEWORK USED : Tensorflow (Keras)
+# 4.  CONCEPT USED : Deep Learning (Convoluted Neural Netwrok)
+# 5.  SYSTEM TO RUN CODE ON : 128 GB RAM | 16 core CPU | 100 GB persistent memory VM on Google Cloud Compute 
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -15,6 +29,7 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 import re
 
+# Process the Fashion Image Data and Image Description to create X and Y
 def createFeaturesAndTargets(maximumNumberOfFashionProducts = 30):
     misMatchDimensions = []
     fashionProducts = []
@@ -71,6 +86,7 @@ def createFeaturesAndTargets(maximumNumberOfFashionProducts = 30):
     print (misMatchDimensions)
     return X, Y, classes
 
+# CNN Architecture Description
 def createCnnModel(numberOfTargetColumns):
     model = Sequential()
     model.add(Conv2D(filters=16, kernel_size=(5, 5), activation="relu", input_shape=(50,38,3)))
@@ -94,11 +110,13 @@ def createCnnModel(numberOfTargetColumns):
     model.summary()
     return model
 
+# Compile and Fit the Model
 def runCNN(model, X_train, X_test, y_train, y_test):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     model.fit(X_train, y_train, epochs=50, validation_data=(X_test, y_test), batch_size=128)
     return model
 
+# Main
 maximumNumberOfFashionProducts = 60000
 model_file_h5 = "model-weights/Model.h5"
 save_classes = "model-classes/classes.npy"

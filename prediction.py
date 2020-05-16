@@ -1,3 +1,17 @@
+# TEAM NAME : KRAB
+# TEAM MEMBERS : Annuj Jain, Bharat Goel, Keshav Aditya Rajupet Premkumar, Rutvij Mehta
+# 1.  References Used For Convoluted Neural Network (CNN):
+#     https://www.analyticsvidhya.com/blog/2019/04/build-first-multi-label-image-classification-model-python/
+# 2.  GENERAL DESCRIPTION OF CODE :
+#     We use the CNN to find the most visually similar product in the datset given a test image. 
+#     The Features X : Are all the Fashion Product Images converted to array format 
+#     The Target Y : Are the the product description like color, usage, category, gender etc
+#     Then for a given test image, the cnn will predict all its descriptions ie. Its color, gender, usage etc
+#     [This file is used predict fashion product image description using the trained model]
+# 3.  DATA FRAMEWORK USED : Tensorflow (Keras)
+# 4.  CONCEPT USED : Deep Learning (Convoluted Neural Netwrok)
+# 5.  SYSTEM TO RUN CODE ON : 128 GB RAM | 16 core CPU | 100 GB persistent memory VM on Google Cloud Compute 
+
 import numpy as np
 import tensorflow as tf
 from keras.preprocessing import image
@@ -6,6 +20,7 @@ from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import save_img
 from keras.models import load_model
 
+# Use the trained CNN Model to predict the descriptions of the Test Image
 def performPrediction(model, classes, testFashionProductPath):
     testFashionProductImage = load_img(testFashionProductPath)
     testFashionProductImageArray = img_to_array(testFashionProductImage)
@@ -54,6 +69,7 @@ def performPrediction(model, classes, testFashionProductPath):
     print (output)
     return prediction
 
+# Main
 model_file_h5 = "model-weights/Model.h5"
 testFashionProductPath = 'fashion-dataset/images/1890.jpg'
 save_classes = "model-classes/classes.npy"
