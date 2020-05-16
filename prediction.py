@@ -19,6 +19,10 @@ def performPrediction(model, classes, testFashionProductPath):
     output["baseColor"] = []
     output["gender"] = []
     output["usage"] = []
+    output["masterCategory"] = []
+    output["subCategory"] = []
+    output["articleType"] = []
+    output["season"] = []
     for i in range(0,lengthClasses):
         data = {}
         data["label"] = classes[i]
@@ -29,6 +33,14 @@ def performPrediction(model, classes, testFashionProductPath):
             output["gender"].append(data)
         elif "usage" in data["label"]:
             output["usage"].append(data)
+        elif "masterCategory" in data["label"]:
+            output["masterCategory"].append(data)
+        elif "subCategory" in data["label"]:
+            output["subCategory"].append(data)
+        elif "articleType" in data["label"]:
+            output["articleType"].append(data)
+        elif "season" in data["label"]:
+            output["season"].append(data)
         else:
             print ("Something Wrong", data)
     prediction = {}

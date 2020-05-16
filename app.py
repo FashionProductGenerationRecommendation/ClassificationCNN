@@ -21,37 +21,42 @@ def createFeaturesAndTargets(maximumNumberOfFashionProducts = 30):
     X = []
     Y = []
     count = 1
-    jsonPath = "fashion-dataset/styles/"
     imagesPath = 'fashion-dataset/images/*.jpg'
+    stylesDataset = pd.read_csv("fashion-dataset/styles.csv", encoding='utf-8', error_bad_lines=False)
+    stylesDataset = stylesDataset.drop_duplicates(subset='id', keep="last")
     for filename in glob.glob(imagesPath):
         fashionProductId = filename.strip('fashion-dataset/images/').strip('.jpg')
         fashionProductImage = load_img(filename)
         fashionProductImageArray = img_to_array(fashionProductImage)
         fashionProductImageArray = tf.image.resize(fashionProductImageArray, [50, 50], method='bilinear', preserve_aspect_ratio=True, antialias=True, name=None)
         fashionProductImageArray = fashionProductImageArray / 255
-        # print ('lol', fashionProductImageArray.shape)
         if (fashionProductImageArray.shape != (50, 38, 3)):
             misMatchDimensions.append(fashionProductId)
             count += 1
             continue
-        # save_img(str(count)+'.jpg', fashionProductImageArray)
-        f = open(jsonPath + fashionProductId + '.json',)
-        fashionProductDetails = json.load(f)
         item = {}
+        fashionProductId = int(fashionProductId)
+        selectedProductRow = stylesDataset[stylesDataset['id'] == fashionProductId]
+        if selectedProductRow.empty:
+            continue
         item["id"] = fashionProductId
-        item["baseColor"] = fashionProductDetails["data"]["baseColour"]
-        item["gender"] = fashionProductDetails["data"]["gender"]
-        item["usage"] = fashionProductDetails["data"]["usage"]
+        item["baseColor"] = selectedProductRow['baseColour'].values[0]
+        item["gender"] = selectedProductRow['gender'].values[0]
+        item["usage"] = selectedProductRow['usage'].values[0]
+        item["masterCategory"] = selectedProductRow['masterCategory'].values[0]
+        item["subCategory"] = selectedProductRow['subCategory'].values[0]
+        item["articleType"] = selectedProductRow['articleType'].values[0]
+        item["season"] = selectedProductRow['season'].values[0]
         item["fashionImage"] = fashionProductImageArray
-        if item["id"] and item["baseColor"] and item["gender"] and item["usage"] :
-            fashionProducts.append([int(item["id"]), item["baseColor"], item["gender"], item["usage"]])
+        if item["id"] and item["baseColor"] and item["gender"] and item["usage"] and item["masterCategory"] and item["subCategory"] and item["articleType"] and item["season"]:
+            fashionProducts.append([item["id"], item["baseColor"], item["gender"], item["usage"], item["masterCategory"], item["subCategory"], item["articleType"], item["season"]])
             X.append(item["fashionImage"])
         count += 1
         if count > maximumNumberOfFashionProducts:
             break
     X = np.array(X)
-    df = pd.DataFrame.from_records(fashionProducts, columns=['id', 'baseColor', 'gender', 'usage'])
-    df = pd.get_dummies(df, prefix=['baseColor', 'gender', 'usage'])
+    df = pd.DataFrame.from_records(fashionProducts, columns=['id', 'baseColor', 'gender', 'usage', 'masterCategory', 'subCategory', 'articleType', 'season'])
+    df = pd.get_dummies(df, prefix=['baseColor', 'gender', 'usage', 'masterCategory', 'subCategory', 'articleType', 'season'])
     Y = np.array(df.drop(['id'], axis=1))
     classes = np.array(list(df.columns.values)[1:])
     print ("\n Total Number of Fashion Product Images")
@@ -91,7 +96,7 @@ def createCnnModel(numberOfTargetColumns):
 
 def runCNN(model, X_train, X_test, y_train, y_test):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), batch_size=64)
+    model.fit(X_train, y_train, epochs=50, validation_data=(X_test, y_test), batch_size=128)
     return model
 
 maximumNumberOfFashionProducts = 60000
@@ -105,7 +110,3 @@ model = runCNN(model, X_train, X_test, y_train, y_test)
 model.save(model_file_h5)
 np.save(save_classes, classes)
 print("Saved model to disk")
-# Products : 3000 Epoch : 100 Batch Size : 32
-# Products : 1000 Epoch : 30  Batch Size : 32
-# Products : 10000 Epoch : 10  Batch Size : 32
-# Products : All Epoch : 20  Batch Size : 64 Test Size : 0.3
